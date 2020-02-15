@@ -1,0 +1,17 @@
+{
+	"name": "Creative Collisions",
+	"version": "1.0.0",
+	"description": "Creative Collisions",
+	"author": {
+		"name": "Zeyao Li",
+		"email": "zeyao.li@nyu.edu"
+	},
+	"main": "server.js",
+	"scripts": {
+		"start": "node server.js"
+	},
+	"dependencies": {
+		"express": "^4.17.1",
+		"socket.io": "^2.3.0"
+	}
+}
