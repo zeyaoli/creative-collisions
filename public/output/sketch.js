@@ -9,7 +9,6 @@ socket.on('connect', function() {
  
   socket.on('userList', (message) => {
     users = message
-
     if (gameState == 'WAITING') {
       displayTextString = `${Object.keys(users).length} connected`
     }
@@ -32,7 +31,7 @@ function setup() {
 	displayText = createP('');
 	displayText.class('content');
   startButton = createButton('start game');
-	startButton.mousePressed(startGame);
+	startButton.mousePressed(buttonPressed);
 
 	socket.on('inputValue', (message) => {
 		let id = message.id;
@@ -62,29 +61,36 @@ function draw() {
   }
 }
 
-function startGame() {
+function buttonPressed() {
   if (gameState === 'INGAME') {
     // do nothing
     console.log('game already started')
     return;
-  }
+  } else if (gameState === 'WAITING') {
 
-	gameState = 'INGAME';
-	randomNum();
-	let timer = setInterval(() => {
-		sec--;
-		canClick = true;
-		if (sec < 0) {
-			clearInterval(timer);
-			canClick = false;
-			sec = 5;
-      gameState = 'FINISHED'
-      replaceText()
-		}
-		socket.emit('click', canClick);
-		console.log(sec);
-	}, 1000);
+    gameState = 'INGAME';
+    randomNum();
+    let timer = setInterval(() => {
+      sec--;
+      canClick = true;
+      if (sec < 0) {
+        clearInterval(timer);
+        canClick = false;
+        sec = 5;
+        gameState = 'FINISHED'
+        replaceText()
+        startButton.html('continue')
+      }
+      socket.emit('click', canClick);
+      console.log(sec);
+    }, 1000);
+  } else { // FINISHED
+    startButton.html('start game')
+    gameState = 'WAITING'
+    displayTextString = `${Object.keys(users).length} connected`
+  }
 }
+
 
 function randomNum() {
 	ranNum = floor(random(2, Object.keys(users).length));
@@ -104,12 +110,3 @@ function replaceText() {
 	}
 }
 
-function touchStarted() {
-  console.log('touchstarted')
-  if (gameState == 'FINISHED') {
-    gameState = 'WAITING'
-    displayTextString = `${Object.keys(users).length} connected`
-  }
-}
-
-// set a boolean for not clicking start button while the program is running
