@@ -20,11 +20,7 @@ let loseArr = [];
 function setup() {
 	noCanvas();
 	let startButton = createButton('start game');
-	if (isInGame == false) {
-		startButton.mousePressed(startGame);
-		// isInGame = true;
-		console.log(isInGame);
-	}
+	startButton.mousePressed(startGame);
 	displayText = createP('');
 	displayText.class('content');
 
@@ -53,7 +49,12 @@ function setup() {
 }
 
 function startGame() {
-	// console.log('game start');
+  if (isInGame === true) {
+    // do nothing
+    console.log('game already started')
+    return;
+  }
+
 	isInGame = true;
 	randomNum();
 	let timer = setInterval(() => {
