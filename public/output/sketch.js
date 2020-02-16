@@ -26,11 +26,12 @@ let sec = 5;
 // WAITING, INGAME, FINISHED
 let gameState = 'WAITING';
 let loseArr = [];
+let startButton;
 
 function setup() {
 	displayText = createP('');
 	displayText.class('content');
-  let startButton = createButton('start game');
+  startButton = createButton('start game');
 	startButton.mousePressed(startGame);
 
 	socket.on('inputValue', (message) => {
@@ -54,6 +55,11 @@ function setup() {
 
 function draw() {
   displayText.html(displayTextString);
+  if (gameState === 'INGAME') {
+    startButton.attribute('disabled', true)
+  } else {
+    startButton.removeAttribute('disabled')
+  }
 }
 
 function startGame() {
