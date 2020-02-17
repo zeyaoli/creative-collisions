@@ -1,87 +1,112 @@
 // Open and connect output socket
 let socket = io('/output');
+let displayTextString = '';
+let users = {};
 
 // Listen for confirmation of connection
 socket.on('connect', function() {
 	console.log('Connected');
+ 
+  socket.on('userList', (message) => {
+    users = message
+    if (gameState == 'WAITING') {
+      displayTextString = `${Object.keys(users).length} connected`
+    }
+  })
+
 });
 
-let users = {};
-let participants = 10;
 let canClick = false;
 let ranNum;
-let count, result;
-let displayText;
+let result = '';
+let count = 0;
 
 let sec = 5;
-let isInGame = false;
+// WAITING, INGAME, FINISHED
+let gameState = 'WAITING';
 let loseArr = [];
+let startButton;
 
 function setup() {
-	noCanvas();
-	let startButton = createButton('start game');
-	if (isInGame == false) {
-		startButton.mousePressed(startGame);
-		// isInGame = true;
-		console.log(isInGame);
-	}
 	displayText = createP('');
 	displayText.class('content');
+  startButton = createButton('start game');
+	startButton.mousePressed(buttonPressed);
 
 	socket.on('inputValue', (message) => {
 		let id = message.id;
 		let data = message.data;
 
-		if (!(id in users)) {
-			users[id] = {
-				value : data
-			};
-		}
+    users[id] = {
+      value : data
+    };
+
 		count = 0;
 		for (id in users) {
 			if (users[id].value == 1) {
 				count += 1;
 			}
 		}
+
 		count == ranNum ? (result = `Wow`) : (result = `Uh Oh`);
-		loseArr = [
+	});
+}
+
+function draw() {
+  displayText.html(displayTextString);
+  if (gameState === 'INGAME') {
+    startButton.attribute('disabled', true)
+  } else {
+    startButton.removeAttribute('disabled')
+  }
+}
+
+function buttonPressed() {
+  if (gameState === 'INGAME') {
+    // do nothing
+    console.log('game already started')
+    return;
+  } else if (gameState === 'WAITING') {
+
+    gameState = 'INGAME';
+    randomNum();
+    let timer = setInterval(() => {
+      sec--;
+      canClick = true;
+      if (sec < 0) {
+        clearInterval(timer);
+        canClick = false;
+        sec = 5;
+        gameState = 'FINISHED'
+        replaceText()
+        startButton.html('continue')
+      }
+      socket.emit('click', canClick);
+      console.log(sec);
+    }, 1000);
+  } else { // FINISHED
+    startButton.html('start game')
+    gameState = 'WAITING'
+    displayTextString = `${Object.keys(users).length} connected`
+  }
+}
+
+
+function randomNum() {
+	ranNum = floor(random(2, Object.keys(users).length));
+	displayTextString = `In this game, ${ranNum} people have to click their phone`;
+}
+
+function replaceText() {
+	if (count === ranNum) {
+		displayTextString = `${result}, you guys finally made it!!`;
+	} else {
+    loseArr = [
 			`${result} y'all failed, ${count} people clicked`,
 			`Only ${count} people clicked this time, try it again!`,
 			`Hmm, not good, ${count} people clicked`
 		];
-	});
-}
-
-function startGame() {
-	// console.log('game start');
-	isInGame = true;
-	randomNum();
-	let timer = setInterval(() => {
-		sec--;
-		canClick = true;
-		if (sec < 0) {
-			clearInterval(timer);
-			canClick = false;
-			sec = 5;
-			replaceText();
-			isInGame = false;
-		}
-		socket.emit('click', canClick);
-		console.log(sec);
-	}, 1000);
-}
-
-function randomNum() {
-	ranNum = floor(random(2, participants));
-	displayText.html(`In this game, ${ranNum} people have to click their phone`);
-}
-
-function replaceText() {
-	if (count == ranNum) {
-		displayText.html(`${result}, you guys finally made it!!`);
-	} else {
-		displayText.html(loseArr[Math.floor(random(2))]);
+		displayTextString = loseArr[Math.floor(random(2))];
 	}
 }
 
-// set a boolean for not clicking start button while the program is running

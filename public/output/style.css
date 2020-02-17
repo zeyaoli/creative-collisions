@@ -1,5 +1,6 @@
 * {
 	box-sizing: border-box;
+	font-size: 40px;
 }
 
 body {
@@ -15,9 +16,10 @@ body {
 
 button {
 	position: relative;
+  margin: auto;
+  padding: 1em;
 }
 
 p {
 	text-align: center;
-	font-size: 50px;
 }
